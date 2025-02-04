@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  AGENT
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
+  password     String
+  firstName    String     @map("first_name")
+  lastName     String     @map("last_name")
+  phone        String
+  qrCode       String     @map("qr_code")
+  profileImage String     @map("profile_image")
+  role         Role       @default(AGENT)
+  properties   Property[]
+
+  @@map("user")
+}
+
+enum ListingType {
+  SELL
+  RENT
+}
+
+model Property {
+  id             Int              @id @default(autoincrement())
+  title          String
+  description    String
+  area           Decimal
+  price          Int
+  listingType    ListingType      @map("listing_type")
+  address        String
+  lat            Float
+  lng            Float
+  storey         Int?
+  bedroom        Int?
+  bathroom       Int?
+  livingroom     Int?
+  kitchen        Int?
+  airconditioner Int?
+  parking        Int?
+  security       Boolean
+  club           Boolean
+  pool           Boolean
+  gym            Boolean
+  playground     Boolean
+  park           Boolean
+  elevator       Boolean
+  agentId        Int              @map("agent_id")
+  agent          User             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  propertyImages PropertyImages[]
+  categoryId     Int              @map("category_id")
+  category       Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  provinceId     Int              @map("province_id")
+  province       Province         @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  districtId     Int              @map("district_id")
+  district       District         @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  roadId         Int              @map("road_id")
+  road           Road             @relation(fields: [roadId], references: [id], onDelete: Cascade)
+  contacts       Contact[]
+
+  @@map("property")
+}
+
+model PropertyImages {
+  id         Int      @id @default(autoincrement())
+  imageUrl   String   @map("image_url")
+  propertyId Int      @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_images")
+}
+
+model Category {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  properties Property[]
+
+  @@map("category")
+}
+
+model Province {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  properties Property[]
+  districts  District[]
+  roads      Road[]
+
+  @@map("province")
+}
+
+model District {
+  id         Int        @id @default(autoincrement())
+  name       String
+  properties Property[]
+  provinceId Int        @map("province_id")
+  province   Province   @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+
+  @@map("district")
+}
+
+model Road {
+  id         Int        @id @default(autoincrement())
+  name       String
+  properties Property[]
+  provinceId Int        @map("province_id")
+  province   Province   @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+
+  @@map("road")
+}
+
+model Contact {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String
+  contact    String
+  purpose    String
+  other      String?
+  propertyId Int      @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("contact")
+}
